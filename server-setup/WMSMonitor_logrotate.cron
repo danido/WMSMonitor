@@ -1,0 +1,5 @@
+HOME=/
+MAILTO=root@localhost
+
+00 2 * * * root /usr/sbin/logrotate -v /opt/WMSMonitor/deployment/WMSMonitor_logrotate.conf >> /var/log/WMSMonitor_logrotate.log 2>&1
+00 1 * * 7 root export TARDATE=`date +%Y%m%d-%H%M%S` && mkdir /tmp/$TARDATE && find /opt/WMSMonitor/msgold/ -iname "*dat" -mtime +1 -exec mv {} /tmp/$TARDATE/ \; && tar -czf /opt/WMSMonitor/msgold/OLDMSG_$TARDATE.tgz  /tmp/$TARDATE && rm -rf /tmp/$TARDATE  >> /var/log/WMSMonitor_logrotate.log 2>&1

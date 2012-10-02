@@ -1,0 +1,4 @@
+7 * * * * root python /opt/WMSMonitor/collector/bin/activemq_consumer_daemon1.py stop
+8 * * * * root python /opt/WMSMonitor/collector/bin/activemq_consumer_daemon1.py start
+5,20,35,50 * * * * root python /opt/WMSMonitor/loadbalancing/host_usagetest_consumer.py; /opt/WMSMonitor/loadbalancing/wms_balancing_arbiter.py  >> /var/log/loadbalancing_test.log 2>&1
+5,20,35,50 * * * * root python /opt/WMSMonitor/loadbalancing/plot_wmslist_inALIAS.py >> /var/log/loadbalancing_test.log 2>&1

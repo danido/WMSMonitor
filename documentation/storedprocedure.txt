@@ -1,0 +1,287 @@
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertUserRateWithMap`(IN dn varchar(150), IN vo_name varchar(150), IN group_name varchar(150) , IN role_name varchar(150) , IN startdate datetime, IN enddate datetime, IN hostname varchar(150), IN wmp_in int(10) unsigned, IN wmp_in_col int(10) unsigned, IN wmp_in_col_nodes int(10) unsigned, IN wmp_in_col_min_nodes int(10) unsigned, IN wmp_in_col_max_nodes int(10) unsigned, IN wm_in int(10) unsigned, IN wm_in_res int(10) unsigned,  IN jc_in int(10) unsigned, IN jc_out int(10) unsigned,  IN job_done int(10) unsigned, IN job_aborted int(10) unsigned)
+begin call insertUserWithMap(dn,group_name,role_name,vo_name);
+insert into user_rates values ('', (select idhost from hosts where hosts.hostname=hostname), (select idusermap from user_map join users on user_map.iduser=users.iduser where (CASE when dn is NULL then users.dn is NULL ELSE users.dn=dn END) and (CASE when vo_name is NULL then user_map.vo is NULL ELSE user_map.vo=vo_name END) and (CASE when group_name is NULL then user_map.voms_group is NULL ELSE user_map.voms_group=group_name END) and (CASE when role_name is NULL then user_map.role is NULL else user_map.role=role_name END)),  startdate, enddate, WMP_in, WMP_in_col, WMP_in_col_nodes, wmp_in_col_min_nodes, wmp_in_col_max_nodes, WM_in, WM_in_res, JC_in, JC_out, JOB_DONE, JOB_ABORTED,'');
+end;
+
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertUserRateDailyWithMap`(IN day date, IN dn varchar(150), IN vo_name varchar(150), IN group_name varchar(150) , IN role_name varchar(150) , IN hostname varchar(150))
+begin
+call insertUserWithMap(dn,group_name,role_name,vo_name);
+select @idhosttmp:=idhost from hosts where hosts.hostname=hostname;
+select @idusermaptmp:=idusermap from user_map join users on user_map.iduser=users.iduser where (CASE when dn is NULL then users.dn is NULL ELSE users.dn=dn END) and (CASE when vo_name is NULL then user_map.vo is NULL ELSE user_map.vo=vo_name END) and (CASE when group_name is NULL then user_map.voms_group is NULL ELSE user_map.voms_group=group_name END) and (CASE when role_name is NULL then user_map.role is NULL else user_map.role=role_name END);
+replace into user_rates_daily values ('', @idhosttmp, @idusermaptmp, day,(select SUM(WMP_in) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(wmp_in_col) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(wmp_in_col_nodes) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select MIN(wmp_in_col_min_nodes) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select MAX(wmp_in_col_max_nodes) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(wm_in) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(wm_in_res) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(jc_in) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(jc_out) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(job_done) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(job_aborted) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp)); end
+
+
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertUserRateDailyWithMapOLD`(IN day date, IN dn varchar(150), IN vo_name varchar(150), IN group_name varchar(150) , IN role_name varchar(150) , IN hostname varchar(150) , wmp_in int(10) unsigned, IN wmp_in_col int(10) unsigned, IN wmp_in_col_nodes int(10) unsigned, IN wmp_in_col_min_nodes int(10) unsigned, IN wmp_in_col_max_nodes int(10) unsigned, IN wm_in int(10) unsigned, IN wm_in_res int(10) unsigned, IN jc_in int(10) unsigned, IN jc_out int(10) unsigned,  IN job_done int(10) unsigned, IN job_aborted int(10) unsigned)
+begin
+call insertUserWithMap(dn,group_name,role_name,vo_name); insert into user_rates_daily values ('',(select idhost from hosts where hosts.hostname=hostname), (select idusermap from user_map join users on user_map.iduser=users.iduser where (CASE when dn is NULL then users.dn is NULL ELSE users.dn=dn END) and (CASE when vo_name is NULL then user_map.vo is NULL ELSE user_map.vo=vo_name END) and (CASE when group_name is NULL then user_map.voms_group is NULL ELSE user_map.voms_group=group_name END) and (CASE when role_name is NULL then user_map.role is NULL else user_map.role=role_name END)), day, WMP_in, WMP_in_col, wmp_in_col_nodes , wmp_in_col_min_nodes, wmp_in_col_max_nodes,  WM_in, WM_in_res, JC_in, JC_out, JOB_DONE, JOB_ABORTED ); end
+
+
+
+CREATE TABLE `user_rates_daily` (
+  `iduserratesdaily` int(10) unsigned NOT NULL auto_increment,
+  `idhost` int(10) unsigned NOT NULL,
+  `idusermap` int(10) unsigned NOT NULL,
+  `day` date NOT NULL default '0000-00-00',
+  `WMP_in` int(10) unsigned default NULL,
+  `WMP_in_col` int(10) unsigned default NULL,
+  `WMP_in_col_nodes` int(10) unsigned default NULL,
+  `WMP_in_col_min_nodes` int(10) unsigned default NULL,
+  `WMP_in_col_max_nodes` int(10) unsigned default NULL,
+  `WM_in` int(10) unsigned default NULL,
+  `WM_in_res` int(10) unsigned default NULL,
+  `JC_in` int(10) unsigned default NULL,
+  `JC_out` int(10) unsigned default NULL,
+  `JOB_DONE` int(10) unsigned default NULL,
+  `JOB_ABORTED` int(10) unsigned default NULL,
+  PRIMARY KEY  (`iduserratesdaily`),
+  KEY `idhost` (`idhost`),
+  KEY `idusermap` (`idusermap`),
+  UNIQUE KEY `iduser` (`idusermap`,`day`,`idhost`),
+  CONSTRAINT `user_rates_daily_ibfk_1` FOREIGN KEY (`idhost`) REFERENCES `hosts` (`idhost`) ON DELETE CASCADE,
+  CONSTRAINT `user_rates_daily_ibfk_2` FOREIGN KEY (`idusermap`) REFERENCES `user_map` (`idusermap`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1
+
+CREATE TABLE `wms_rates_daily` (
+  `idwmsratesdaily` int(10) unsigned NOT NULL auto_increment,
+  `idhost` int(10) unsigned NOT NULL,
+  `day` date NOT NULL default '0000-00-00',
+  `WMP_in` int(10) unsigned default NULL,
+  `WMP_in_col` int(10) unsigned default NULL,
+  `WMP_in_col_nodes` int(10) unsigned default NULL,
+  `WMP_in_col_min_nodes` int(10) unsigned default NULL,
+  `WMP_in_col_max_nodes` int(10) unsigned default NULL,
+  `WM_in` int(10) unsigned default NULL,
+  `WM_in_res` int(10) unsigned default NULL,
+  `JC_in` int(10) unsigned default NULL,
+  `JC_out` int(10) unsigned default NULL,
+  `JOB_DONE` int(10) unsigned default NULL,
+  `JOB_ABORTED` int(10) unsigned default NULL,
+  PRIMARY KEY  (`idwmsratesdaily`),
+  KEY `idhost` (`idhost`),
+  UNIQUE KEY `iduser` (`day`,`idhost`),
+  CONSTRAINT `wms_rates_daily_ibfk_1` FOREIGN KEY (`idhost`) REFERENCES `hosts` (`idhost`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=93973 DEFAULT CHARSET=latin1
+
+
+
+CESTASTS
+vecchie procedure
+
+Create Procedure: CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertCE_Stats`(IN datemeas datetime, IN hostnamece varchar(250), IN hostnamewms varchar(250), IN occurrences int(10) unsigned, IN vo varchar(250))
+begin call insertCEHost(hostnamece); insert into ce_stats values ('', (select idhost from hosts where hosts.hostname=hostnamewms), '', datemeas, (select idcehost from cehosts where cehosts.hostname=hostnamece), occurrences,'', vo); end
+1 row in set (0.00 sec)
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertCE_StatsDaily`(IN day date, IN hostnamece varchar(250), IN hostnamewms varchar(250), IN occurrences int(10) unsigned, IN vo varchar(250))
+begin
+call insertCEHost(hostnamece);
+insert into ce_stats_daily values ('', (select idhost from hosts where hosts.hostname=hostnamewms), '',day , (select idcehost from cehosts where hosts.hostname=hostnamece), occurrences, vo);
+
+
+OLD CESTATS
+CREATE TABLE `ce_stats` (
+  `idcestats` int(10) unsigned NOT NULL auto_increment,
+  `idwms` int(10) unsigned NOT NULL,
+  `idusermap` int(10) unsigned default NULL,
+  `measure_time` datetime NOT NULL default '0000-00-00 00:00:00',
+  `idcehost` int(10) unsigned NOT NULL,
+  `occurrences` int(10) unsigned default NULL,
+  `last_mod_time` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `vo` varchar(150) default NULL,
+  PRIMARY KEY  (`idcestats`),
+  KEY `idwms` (`idwms`),
+  KEY `idusermap` (`idusermap`),
+  KEY `idcehost` (`idcehost`),
+  CONSTRAINT `ce_stats_ibfk_1` FOREIGN KEY (`idwms`) REFERENCES `hosts` (`idhost`) ON DELETE CASCADE,
+  CONSTRAINT `ce_stats_ibfk_2` FOREIGN KEY (`idusermap`) REFERENCES `user_map` (`idusermap`) ON DELETE CASCADE,
+  CONSTRAINT `ce_stats_ibfk_3` FOREIGN KEY (`idcehost`) REFERENCES `cehosts` (`idcehost`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+
+NEW senza usermap
+
+CREATE TABLE `ce_stats` (
+  `idcestats` int(10) unsigned NOT NULL auto_increment,
+  `idwms` int(10) unsigned NOT NULL,
+  `measure_time` datetime NOT NULL default '0000-00-00 00:00:00',
+  `idcehost` int(10) unsigned NOT NULL,
+  `occurrences` int(10) unsigned default NULL,
+  `last_mod_time` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `vo` varchar(150) default NULL,
+  PRIMARY KEY  (`idcestats`),
+  KEY `idwms` (`idwms`),
+  KEY `idcehost` (`idcehost`),
+  CONSTRAINT `ce_stats_ibfk_1` FOREIGN KEY (`idwms`) REFERENCES `hosts` (`idhost`) ON DELETE CASCADE,
+  CONSTRAINT `ce_stats_ibfk_3` FOREIGN KEY (`idcehost`) REFERENCES `cehosts` (`idcehost`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+OLD ce_stats_daily
+
+CREATE TABLE `ce_stats_daily` (
+  `idcestats` int(10) unsigned NOT NULL auto_increment,
+  `idwms` int(10) unsigned NOT NULL,
+  `idusermap` int(10) unsigned default NULL,
+  `day` date NOT NULL default '0000-00-00',
+  `idcehost` int(10) unsigned NOT NULL,
+  `occurrences` int(10) unsigned default NULL,
+  `vo` varchar(150) default NULL,
+  PRIMARY KEY  (`idcestats`),
+  KEY `idwms` (`idwms`),
+  KEY `idusermap` (`idusermap`),
+  KEY `idcehost` (`idcehost`),
+  CONSTRAINT `ce_stats_daily_ibfk_1` FOREIGN KEY (`idwms`) REFERENCES `hosts` (`idhost`) ON DELETE CASCADE,
+  CONSTRAINT `ce_stats_daily_ibfk_2` FOREIGN KEY (`idusermap`) REFERENCES `user_map` (`idusermap`) ON DELETE CASCADE,
+  CONSTRAINT `ce_stats_daily_ibfk_3` FOREIGN KEY (`idcehost`) REFERENCES `cehosts` (`idcehost`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+NEW ce_stats_daily
+
+CREATE TABLE `ce_stats_daily` (
+  `idcestats` int(10) unsigned NOT NULL auto_increment,
+  `idwms` int(10) unsigned NOT NULL,
+  `day` date NOT NULL default '0000-00-00',
+  `idcehost` int(10) unsigned NOT NULL,
+  `occurrences` int(10) unsigned default NULL,
+  `vo` varchar(150) default NULL,
+  PRIMARY KEY  (`idcestats`),
+  KEY `idwms` (`idwms`),
+  KEY `idcehost` (`idcehost`),
+  UNIQUE KEY (`day`,`idcehost`,`idwms`),
+  CONSTRAINT `ce_stats_daily_ibfk_1` FOREIGN KEY (`idwms`) REFERENCES `hosts` (`idhost`) ON DELETE CASCADE,
+  CONSTRAINT `ce_stats_daily_ibfk_3` FOREIGN KEY (`idcehost`) REFERENCES `cehosts` (`idcehost`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+nuove procedure
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertCE_Stats`(IN datemeas datetime, IN hostnamece varchar(250), IN hostnamewms varchar(250), IN occurrences int(10) unsigned, IN vo varchar(250))
+begin call insertCEHost(hostnamece); insert into ce_stats values ('', (select idhost from hosts where hosts.hostname=hostnamewms), datemeas, (select idcehost from cehosts where cehosts.hostname=hostnamece), occurrences,'', vo); end;
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertCE_StatsDaily`(IN day date, IN hostnamece varchar(250), IN hostnamewms varchar(250), IN vo varchar(250))
+begin
+select @idhosttmp:= (select idcehost from cehosts where hostname=hostnamece);
+replace into ce_stats_daily values ('', (select idhost from hosts where hosts.hostname=hostnamewms),day , @idhosttmp, (select SUM(occurrences) from ce_stats where idcehost=@idhosttmp and measure_time=day), vo); end;
+
+
+vecchia
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertCE_StatsDaily`(IN day date, IN hostnamece varchar(250), IN hostnamewms varchar(250), IN occurrences int(10) unsigned, IN vo varchar(250))
+begin
+call insertCEHost(hostnamece);
+insert into ce_stats_daily values ('', (select idhost from hosts where hosts.hostname=hostnamewms), '',day , (select idcehost from cehosts where hosts.hostname=hostnamece), occurrences, vo);
+
+nuova 
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertCE_StatsDaily`(IN day date, IN hostnamece varchar(250), IN hostnamewms varchar(250), IN vo varchar(250))
+begin
+select @idhosttmp:= (select idcehost from cehosts where hostname=hostnamece);
+insert into ce_stats_daily values ('', (select idhost from hosts where hosts.hostname=hostnamewms),day , @idhosttmp, (select SUM(occurrences) from ce_stats where idcehost=@idhosttmp and measure_time=day), vo); end;
+
+
+
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertLB_hist`(IN datemeas datetime, IN hostnamewms varchar(250), IN hostnamelb varchar(150), IN occurrences int(10) unsigned)
+begin
+call insertLBHost(hostnamelb);
+insert into lb_hist values ('',(select idhost from hosts where hosts.hostname=hostnamewms), datemeas, (select idlbhost from lbhosts where lbhosts.hostname=hostnamelb), occurrences,'');end;//
+
+
+
+old
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertLB_histDaily`(IN dateday date, IN hostnamelb varchar(250), IN hostnamewms varchar(150), IN occurrences int(10) unsigned)
+begin
+call insertLBHost(hostnamelb);
+insert into lb_hist_daily values ('', (select idhost from hosts where hosts.hostname=hostnamewms), dateday, (select idlbhost from lbhosts where hosts.hostname=hostnamelb), occurrences);end;
+
+new
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertLB_histDaily`(IN dateday date, IN hostnamelb varchar(250), IN hostnamewms varchar(150))
+begin
+select @idhosttmp:= (select idlbhost from lbhosts where hostname=hostnamelb);
+replace into lb_hist_daily values ('',(select idhost from hosts where hosts.hostname=hostnamewms), dateday, @idhosttmp, (select SUM(occurrences) from lb_hist where measure_time=dateday and idlb=@idhosttmp)); 
+end;
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#NUOVO CAMBIO PER INSERT ON DUPLICATE AL POSTO DEL REPLACE
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+vecchia insertUserRateDailyWithMap
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertUserRateDailyWithMap`(IN day date, IN dn varchar(150), IN vo_name varchar(150), IN group_name varchar(150) , IN role_name varchar(150) , IN hostname varchar(150))
+begin
+call insertUserWithMap(dn,group_name,role_name,vo_name);
+select @idhosttmp:=idhost from hosts where hosts.hostname=hostname;
+select @idusermaptmp:=idusermap from user_map join users on user_map.iduser=users.iduser where (CASE when dn is NULL then users.dn is NULL ELSE users.dn=dn END) and (CASE when vo_name is NULL then user_map.vo is NULL ELSE user_map.vo=vo_name END) and (CASE when group_name is NULL then user_map.voms_group is NULL ELSE user_map.voms_group=group_name END) and (CASE when role_name is NULL then user_map.role is NULL else user_map.role=role_name END);
+replace into user_rates_daily values ('', @idhosttmp, @idusermaptmp, day,(select SUM(WMP_in) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(wmp_in_col) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(wmp_in_col_nodes) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select MIN(wmp_in_col_min_nodes) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select MAX(wmp_in_col_max_nodes) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(wm_in) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(wm_in_res) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(jc_in) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(jc_out) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(job_done) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp),(select SUM(job_aborted) from user_rates where start_date > day and idhost = @idhosttmp and idusermap=@idusermaptmp)); end
+
+--------------------------------
+NUOVA insertUserRateDailyWithMap
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertUserRateDailyWithMap` (IN day date, IN dn varchar(150), IN vo_name varchar(150), IN group_name varchar(150) , IN role_name varchar(150) , IN hostname varchar(150), IN wmp_in_x int(10) unsigned, IN wmp_in_col_x int(10) unsigned, IN wmp_in_col_nodes_x int(10) unsigned, IN wmp_in_col_min_nodes_x int(10) unsigned, IN wmp_in_col_max_nodes_x int(10) unsigned, IN wm_in_x int(10) unsigned, IN wm_in_res_x int(10) unsigned,  IN jc_in_x int(10) unsigned, IN jc_out_x int(10) unsigned,  IN job_done_x int(10) unsigned, IN job_aborted_x int(10) unsigned)
+begin
+call insertUserWithMap(dn,group_name,role_name,vo_name);
+set @idusermaptmp=(select idusermap from user_map join users on user_map.iduser=users.iduser where (CASE when dn is NULL then users.dn is NULL ELSE users.dn=dn END) and (CASE when vo_name is NULL then user_map.vo is NULL ELSE user_map.vo=vo_name END) and (CASE when group_name is NULL then user_map.voms_group is NULL ELSE user_map.voms_group=group_name END) and (CASE when role_name is NULL then user_map.role is NULL else user_map.role=role_name END));
+
+INSERT INTO 
+user_rates_daily (iduserratesdaily,idhost,idusermap,day,wmp_in, wmp_in_col, wmp_in_col_nodes, wmp_in_col_min_nodes, wmp_in_col_max_nodes, wm_in, wm_in_res, jc_in, jc_out, job_done, job_aborted) 
+VALUES ('', (select idhost from hosts where hosts.hostname=hostname), @idusermaptmp, day, wmp_in_x,wmp_in_col_x,wmp_in_col_nodes_x, wmp_in_col_min_nodes_x, wmp_in_col_max_nodes_x, wm_in_x, wm_in_res_x, jc_in_x, jc_out_x,job_done_x,job_aborted_x)  
+ON DUPLICATE KEY UPDATE 
+wmp_in=coalesce(wmp_in,0) + wmp_in_x ,
+wmp_in_col= coalesce(wmp_in_col,0) + wmp_in_col_x, 
+wmp_in_col_nodes= coalesce(wmp_in_col_nodes,0) + wmp_in_col_nodes_x, 
+wmp_in_col_min_nodes= least(wmp_in_col_min_nodes,wmp_in_col_min_nodes_x),
+wmp_in_col_max_nodes= greatest(wmp_in_col_max_nodes, wmp_in_col_max_nodes_x),
+wm_in=wm_in + wm_in_x,
+wm_in_res=wm_in_res + wm_in_res_x,
+jc_in=jc_in + jc_in_x,
+jc_out=jc_out + jc_out_x,
+job_done=job_done+job_done_x,
+job_aborted=job_aborted+job_aborted_x;
+end;//
+
+--------------------------------
+NUOVA insertCE_StatsDaily
+
+Create Procedure: CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertCE_StatsDaily`(IN day date, IN hostnamece varchar(250), IN hostnamewms varchar(250), IN vo varchar(250))
+begin
+select @idhosttmp:= (select idcehost from cehosts where hostname=hostnamece);
+replace into ce_stats_daily values ('', (select idhost from hosts where hosts.hostname=hostnamewms),day , @idhosttmp, (select SUM(occurrences) from ce_stats where idcehost=@idhosttmp and measure_time=day), vo); end
+
+-------
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertCE_StatsDaily`(IN day date, IN hostnamece varchar(250), IN hostnamewms varchar(250), IN vo varchar(250))
+begin
+set @idhosttmp:= (select idcehost from cehosts where hostname=hostnamece);
+INSERT INTO
+ce_stats_daily (idcestats,idwms,day,idcehost,occurrences,vo)
+VALUES('', (select idhost from hosts where hosts.hostname=hostnamewms),day , @idhosttmp, (select SUM(occurrences) from ce_stats where idcehost=@idhosttmp and measure_time=day), vo)
+ON DUPLICATE KEY UPDATE
+occurrences=(select SUM(occurrences) from ce_stats where idcehost=@idhosttmp and measure_time=day); 
+end //
+
+-------------------------------------
+NUOVA insertLB_histDaily
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertLB_histDaily`(IN dateday date, IN hostnamelb varchar(250), IN hostnamewms varchar(150))
+begin
+set @idhosttmp=(select idlbhost from lbhosts where hostname=hostnamelb);
+replace into lb_hist_daily values ('',(select idhost from hosts where hosts.hostname=hostnamewms), dateday, @idhosttmp, (select SUM(occurrences) from lb_hist where measure_time=dateday and idlb=@idhosttmp));
+end
+
+-----
+
+CREATE DEFINER=`wmsmon`@`%` PROCEDURE `insertLB_histDaily`(IN dateday date, IN hostnamelb varchar(250), IN hostnamewms varchar(150))
+begin
+set @idhosttmp:= (select idlbhost from lbhosts where hostname=hostnamelb);
+INSERT INTO
+lb_hist_daily(idlbhistdaily,idwms,day,idlb,occurrences)
+VALUES ('',(select idhost from hosts where hosts.hostname=hostnamewms), dateday, @idhosttmp, (select SUM(occurrences) from lb_hist where measure_time=dateday and idlb=@idhosttmp))
+ON DUPLICATE KEY UPDATE
+occurrences=(select SUM(occurrences) from lb_hist where measure_time=dateday and idlb=@idhosttmp);
+end//
+
+
+
+
+
+

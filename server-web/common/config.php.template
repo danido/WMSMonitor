@@ -1,0 +1,18 @@
+<?php
+
+$config->dbHost="localhost";
+$config->dbUser="";
+$config->dbPass=""; #Set a good MySql DB password
+$config->dbDatabase="";
+
+$db=mysql_connect($config->dbHost,$config->dbUser,$config->dbPass) or die("Unable to connect db");
+mysql_select_db($config->dbDatabase) or die ("Unable to select db");
+
+$config->wmsmonWebDir="dev/";
+
+$config->lemonURL="";
+
+$config->contactEmail="";
+
+$config->protectedPages=1;
+?>

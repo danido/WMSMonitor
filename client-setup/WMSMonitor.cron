@@ -1,0 +1,8 @@
+#UNCOMMENT The following for LB server
+#00,15,30,45 * * * * root  /opt/WMSMonitor/sensors/bin/lb-sensor-wrapper.sh 
+
+#UNCOMMENT The following for WMS server
+#00,15,30,45 * * * * root /opt/WMSMonitor/sensors/bin/wms-sensor-wrapper.sh
+
+#NOTE: UNCOMMENT BOTH for WMS-LB deployed on same server
+9 2 * * * root /usr/bin/python /opt/WMSMonitor/sensors/bin/globus_error_detector.py -1 >> /var/log/WMSMonitor_globus_error_detector.log 2>&1

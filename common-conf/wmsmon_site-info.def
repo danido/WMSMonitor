@@ -1,0 +1,29 @@
+# WMSMON server configuration file, define a series of key values pair separate by '='
+#####################################
+# WMSMONITOR SERVER conf variables  #
+#####################################
+
+WMSMON_HOST = YOUR_WMSMONITOR_SERVER_HOSTNAME
+
+#please do not enclose between ' ' or " " the following password
+WMSMON_DB_PWD = YOUR_WMSMON_USER_PASS
+WMSMON_WEB_DB_PWD = YOUR_WMSMON_WEBUSER_PASS
+
+#Put here the main url of lemon server eventually monitoring your wms instances 
+# N.B. If you have no fabric monitoring (eg. LEMON) set LEMONFLAG to 0 
+LEMONFLAG=1
+
+LEMONURL= URL_OF_LEMON_FARMING_MONITOR 
+#(e.g) https://lemon.cr.cnaf.infn.it/lemon-web/info.php
+
+# MAIL CONTACT that will appear in web pages error messages. Users will be invited to send email to this address.
+WMSMON_SEVER_CONTACT_EMAIL = YOUR-SITE-WMSSUPPORT-MAILCONTACT
+
+################################################################
+###########   LOAD BALANCING PARAMETERS    #####################
+# PLEASE IGNORE IF NOT INSTALLING THE LOADBALANCING ARBITER    #
+################################################################
+LOAD_BALANCING_SITE_CONTACT = YOUR-SITE-WMSLOADBALANCINGSUPPORT-MAILCONTACT
+DNS_KEYSTRING = e.g. wms-grid.cnaf.infn.it.:CCCCCCCCCCCCCCCxxxxxxxxxxxxxxxXXXXXXXXXXXXXXXXXXXXXrrrrrrrrrrTTTTTTTTTTT==
+DNS_SERVER = YOURDNS_SERVER_FOR_LOADBALANCING
+DNS_ZONE = YOURDNS_ZONE_FOR_LOADBALANCING

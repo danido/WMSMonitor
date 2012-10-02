@@ -1,0 +1,4 @@
+HOME=/
+MAILTO=root@localhost
+
+00 2 * * * root /usr/sbin/logrotate -v /etc/wmsmon_logrotate.conf >> /var/log/wmsmon_logrotate.log 2>&1

@@ -1,0 +1,9 @@
+gcc -o done_events -I/opt/glite/include -L/opt/glite/lib64 -lglite_lb_client_gcc64dbgpthr done_events.c
+gcc -o abort_events -I/opt/glite/include -L/opt/glite/lib64 -lglite_lb_client_gcc64dbgpthr abort_events.c 
+gcc -o enqueued_JSS_jobs.c -I/opt/glite/include -L/opt/glite/lib64 -lglite_lb_client_gcc64dbgpthr enqueued_JSS_jobs.c 
+gcc -o resubmitted_WM_jobs.c -I/opt/glite/include -L/opt/glite/lib64 -lglite_lb_client_gcc64dbgpthr resubmitted_WM_jobs.c 
+gcc -o transfer_CONDOR_jobs.c -I/opt/glite/include -L/opt/glite/lib64 -lglite_lb_client_gcc64dbgpthr transfer_CONDOR_jobs.c 
+gcc -o CE_histogram -I/opt/glite/include -L/opt/glite/lib64 -lglite_lb_client_gcc64dbgpthr CE_histogram.c 
+gcc -o enqueued_CONDOR_jobs -I/opt/glite/include -L/opt/glite/lib64 -lglite_lb_client_gcc64dbgpthr enqueued_CONDOR_jobs.c 
+gcc -o enqueued_WM_jobs -I/opt/glite/include -L/opt/glite/lib64 -lglite_lb_client_gcc64dbgpthr enqueued_WM_jobs.c
+gcc -o submitted_jobs -I/opt/glite/include -L/opt/glite/lib64 -lglite_lb_client_gcc64dbgpthr submitted_jobs.c 
