@@ -32,6 +32,7 @@ def wms_balancing_metric(WMS):
               return 0
            return fval
 
+        #INITIALIZATION
 	confvar=readconf_func.readconf()
 	fdrain=1
 	fload=1
@@ -42,6 +43,7 @@ def wms_balancing_metric(WMS):
         disklimit = 90
         wmsdata = []
 
+
         ###########   LOAD BALANCING PARAMETERS    #####################
         LATENCY = 0 #confvar.get('LATENCY')
         LATENCY_PATH = ' ' #confvar.get('LATENCY_PATH')
@@ -51,7 +53,7 @@ def wms_balancing_metric(WMS):
         ####################################################
 
 
-
+        #########################################################
 	#Calculating fdrain component
 	#checks on daemons
         logger.info('checking daemons')
@@ -73,7 +75,7 @@ def wms_balancing_metric(WMS):
               fdrain = -1
 
 	#checking whether the wms is in autodrain for overload detection
-#cmd = "grep glite_wms_wmproxy_load_monitor ${GLITE_LOCATION}/etc/glite_wms.conf |grep jobSubmit"
+        #cmd = "grep glite_wms_wmproxy_load_monitor /etc/glite-wms/glite_wms.conf |grep jobSubmit"
         cmdwmsconfig = '. ' + env_script + '; echo $GLITE_WMS_CONFIG_DIR'
         stddrain = os.popen(cmdwmsconfig)
         strtmp = stddrain.readlines()
@@ -87,31 +89,22 @@ def wms_balancing_metric(WMS):
               logger.info("invoking jobsubmit script: " +cmd)
 	      status=os.system(cmd + ' > /dev/null 2>&1')
               if (status != 0):
-                      logger.info('fdrain = -1 because the command failed. Cmd is:')
+                      logger.info('fdrain = -1 because exit status is != 0 for command :')
                       logger.info(cmd)
                       fdrain=-1
               std = os.popen(cmd)
               stdstr =  std.readlines()
    	      if ( len(stdstr) > 0 ) :
-		      if  (stdstr[2].split()[2] == 'Load') & (stdstr[2].split()[3].find('15')>0):                   
-			   loadcpulimit=stdstr[2].split()[5];
-		      else:
-	  		   logger.error("Unable to find LoadCPU parsing the /sbin/glite_wms_wmproxy_load_monitor wmsdata")
+		      try:
+                           loadcpulimit=[x for x in stdstr if x.startswith('Threshold for Load Average(15 min)')][0].split()[5].strip()
+                           memlimit=[x for x in stdstr if x.startswith('Threshold for Memory Usage')][0].split()[4].strip()
+                           memusage=[x for x in stdstr if x.startswith('Threshold for Memory Usage')][0].split()[len(stdstr[3].split())-1].strip('%')                    
+                           disklimit=[x for x in stdstr if x.startswith('Threshold for Disk')][0].split()[4].strip('%')
+
+		      except:
+                           logger.error("Unable to parse /sbin/glite_wms_wmproxy_load_monitor script output ")
                            return None
-                      if  (stdstr[3].split()[2] == 'Memory'):
-                           memlimit=stdstr[3].split()[4]
-                           memusage=stdstr[3].split()[len(stdstr[3].split())-1]
-                           memusage=memusage[0:memusage.find('%')]
-                      else:
-                           logger.error("Unable to find Memory Usage parsing the /sbin/glite_wms_wmproxy_load_monitor wmsdata")
-                           return None
-                      if  (stdstr[7].split()[2] == 'Disk'):
-                           disklimit=stdstr[7].split()[4]
-			   disklimit=disklimit[0:disklimit.find('%')]
-                      else:
-                           logger.error("Unable to find Disk Usage Limit parsing the /sbin/glite_wms_wmproxy_load_monitor wmsdata")
-                           return None
- 
+
 	else : 
   	      logger.error("Problem reading glite_wms.conf file")
               return None
